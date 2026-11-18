@@ -19,7 +19,13 @@ EXPECTED_ROWS = 284_807
 EXPECTED_FRAUDS = 492
 
 TARGET = "Class"
-FEATURES = ["Time"] + [f"V{i}" for i in range(1, 29)] + ["Amount"]
+FEATURES = ["Time"] + [f"V{i}" for i in range(1, 29)] + ["Amount"]   # all input columns in the file
+
+# Columns the models use. `Time` (seconds since the dataset started) is excluded on purpose:
+# test transactions are always later than training ones, so the model would learn
+# "later = safer" from this particular 2-day file. In production it would keep growing
+# beyond anything seen in training. (Validation PR-AUC without it: 0.778 vs 0.765 with.)
+MODEL_FEATURES = [f for f in FEATURES if f != "Time"]
 
 
 def verify(df: pd.DataFrame) -> pd.DataFrame:
@@ -77,8 +83,8 @@ def time_split(df: pd.DataFrame, train_frac: float = 0.6, val_frac: float = 0.2)
 
 
 def xy(df: pd.DataFrame):
-    """Split a frame into features X and target y."""
-    return df[FEATURES], df[TARGET]
+    """Split a frame into model features X (no `Time`) and target y."""
+    return df[MODEL_FEATURES], df[TARGET]
 
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@ How I used AI tools on this assignment, kept as I go rather than written from me
 | 2026-11-18 | Groq check | Listed available Groq models; found the planned default (`llama-3.3-70b-versatile`) no longer offered, switched to `openai/gpt-oss-120b` | Created the API key myself |
 | 2026-11-18 | A1 – data | Wrote `part_a_fraud/src/data.py` (download, dataset checks, dedup, time split) | Downloaded the Kaggle copy manually (OpenML download was too slow); checked split summary |
 | 2026-11-18 | A2 – EDA | Generated and executed `fraud_analysis.ipynb` (imbalance, amount, time, duplicates, PCA features) | Reviewed every chart and conclusion against the outputs |
+| 2026-11-18 | A3–A5 – models | Wrote `features.py`, `train.py`, `evaluate.py` (bootstrap CIs, paired difference, alert-budget and val-threshold metrics); notebook section 2 | Reviewed design choices: alert budget 0.2%, precision target 80%, no tuning |
 
 ## Things I did not delegate to AI
 
@@ -26,6 +27,8 @@ How I used AI tools on this assignment, kept as I go rather than written from me
 ## Where AI output was wrong or needed changes
 
 - **EDA, first draft:** conclusions were written before the outputs were checked. The amount histogram used density on log-width bins, which made large amounts look negligible; it was replaced with a "% of class" chart. Feature names in the text didn't match the computed ranking, and "almost all" duplicates kept together was actually "all" (0 of 773 groups). All fixed after checking the outputs.
+- **LightGBM class weighting:** the plan's `scale_pos_weight ≈ 497` made the model early-stop after 3 trees. Compared settings on validation and switched to 1. While debugging, an exploratory script also printed *test* scores; the decision rests on validation alone, and this is disclosed in the notebook.
+- **`Time` as a feature:** the first model used raw `Time`. The SHAP plot showed it pushing every test row towards "legit" (an artefact of test always being later than train). Removed on principle; all numbers and text were regenerated afterwards.
 - _(add as you go)_
 
 ## Rough share of AI-generated code

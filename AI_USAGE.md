@@ -14,6 +14,8 @@ How I used AI tools on this assignment, kept as I go rather than written from me
 | Date | Step | What the AI did | What I did / checked |
 |---|---|---|---|
 | 2026-11-18 | Step 0 – setup | Created repo structure, `.gitignore`, `requirements.txt`, `.env.example`, this file; created GitHub repo and pushed | Reviewed every file; chose the structure and tooling in `PayGuard-Plan.md` |
+| 2026-11-18 | Groq check | Listed available Groq models; found the planned default (`llama-3.3-70b-versatile`) no longer offered, switched to `openai/gpt-oss-120b` | Created the API key myself |
+| 2026-11-18 | A1 – data | Wrote `part_a_fraud/src/data.py` (download, dataset checks, dedup, time split) | Downloaded the Kaggle copy manually (OpenML download was too slow); checked split summary |
 
 ## Things I did not delegate to AI
 

@@ -1,0 +1,19 @@
+# Python 3.12. Exact versions verified in a clean venv on 2026-11-18.
+
+# Core data / ML (Part A)
+numpy==2.5.5
+pandas==3.1.1
+scikit-learn==1.9.1
+lightgbm==4.7.0
+matplotlib==3.11.2
+shap==0.54.1
+
+# LLM triage (Part B)
+openai==3.55.0          # OpenAI-compatible client, used for Groq and Ollama
+pydantic==2.14.3        # output schema validation
+tenacity==9.2.1         # retries with exponential backoff
+python-dotenv==1.2.4    # loads API keys from .env
+requests==2.34.2        # CFPB complaints API
+
+# Notebooks
+jupyter==1.1.1

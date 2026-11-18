@@ -1,0 +1,45 @@
+# --- Secrets ---------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# --- Python / virtual environments -----------------------------------------
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Jupyter ---------------------------------------------------------------
+.ipynb_checkpoints/
+
+# --- Data (downloaded or generated; recreate with the scripts) -------------
+# Part A: creditcard.csv is ~150 MB, download per README
+part_a_fraud/data/*
+!part_a_fraud/data/.gitkeep
+# Part B: raw CFPB slice, LLM outputs and run logs
+part_b_triage/data/*
+!part_b_triage/data/.gitkeep
+# Large/binary data anywhere in the repo
+*.csv
+*.parquet
+*.zip
+*.pkl
+*.joblib
+# Hand labels ARE committed (they're the evaluation set)
+!part_b_triage/labels/*.csv
+
+# --- Logs & outputs --------------------------------------------------------
+*.log
+logs/
+
+# --- OS / editor -----------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

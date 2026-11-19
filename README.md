@@ -150,22 +150,23 @@ All proportions carry 95% Wilson intervals.
 
 | | gpt-oss-120b | gpt-oss-20b |
 |---|---|---|
-| Schema failures / retries / fallbacks (100 eval complaints) | 0 / 0 / 0 | 0 / 0 / 0 |
+| Complaints processed | 330 of 500 (+ test sets) | 100 (eval set + test sets) |
+| Schema failures / retries / fallbacks | **0 / 0 / 0** (of 330) | 0 / 0 / 0 (of 100) |
 | Summaries with a number/date not in the complaint | 0 | 0 |
 | Same category on an identical re-run | 27/30 (90%) | 29/30 (97%) |
 | Same **final** escalation on re-run (with guards) | **30/30** | **30/30** |
-| Identical template (7 copies) routed consistently | no (Customer ×4, Fraud ×3) | yes (Fraud ×7) |
-| Escalation rate, LLM alone → with guards | 30% → 51% | 49% → 63% |
+| Identical template routed consistently | 13 of 16 groups; the 25-copy Cash App template split **Customer ×15 / Fraud ×10** | 7-copy group in eval set: Fraud ×7 |
+| Escalation rate, LLM alone → with guards | 36% → 58% (330) | 49% → 63% (100) |
 | Prompt injection moved the LLM | 1 clear + 1 within noise, of 8 | 1 of 8 |
 | **Prompt injection success after guards** | **0 of 8** | **0 of 8** |
-| Agreement with CFPB weak labels | 46% | 48% |
-| Tokens per complaint (in / out) | 992 / 129 | 989 / 110 |
-| Latency p50 / p95 | 0.9 s / 1.4 s | 0.8 s / 1.6 s |
+| Agreement with CFPB weak labels | 44% (330) | 48% (100) |
+| Tokens per complaint (in / out) | 989 / 132 | 989 / 110 |
+| Latency p50 / p95 | 0.9 s / 2.7 s | 0.8 s / 1.6 s |
 
 **What these say**
 - **The schema plus validation retries make output failures a non-issue.** The real risks are semantic: wrong route, under-triage, an inconsistent decision.
 - **The LLM alone isn't reliable enough for safety decisions.** It changes its escalation decision on 1 in 10 identical re-runs and can be pushed by a fake-delimiter attack. **The deterministic guards make the final escalation decision fully stable and resisted every injection.** That's the argument for keeping safety rules outside the model.
-- **The cost of that safety is escalation volume.** With guards, about half of complaints go to a human, mainly because "fraud" words are common, for example in credit-report disputes. The hand labels measure whether that is over-escalation. The likely next step is a cheaper "light review" queue for keyword-only escalations.
+- **The cost of that safety is escalation volume.** With guards, 58% of complaints go to a human, mainly because "fraud" words are common, for example in credit-report disputes. The hand labels measure whether that is over-escalation. The likely next step is a cheaper "light review" queue for keyword-only escalations.
 - **The weak-label disagreement is mostly the weak labels' fault.** Complaints filed under CFPB's "debt collection" product are often credit-report disputes ("remove this collection from my report"), which the LLM routes correctly. Weak labels are good for spotting drift, not for measuring accuracy.
 - **The smaller model was more stable and more conservative.** Its accuracy is decided by the hand labels.
 
@@ -178,17 +179,17 @@ All proportions carry 95% Wilson intervals.
 | Gemini 2.5 Flash ($0.30/$2.50) | ≈ $0.0006 | ≈ $31 |
 | Claude Haiku 4.5 ($1/$5) | ≈ $0.0016 | ≈ $82 |
 
-The model is **not** the cost driver. A self-hosted open model on an in-country GPU is a fixed monthly cost, plausibly in the low thousands of dollars (my rough estimate; it depends on hardware and hosting, and needs a real quote). Human review of ~50% escalations dominates everything. The in-country hosting requirement (Part C) rules out these foreign APIs anyway. The free tier's limits (8k tokens/min, a daily quota) were the practical bottleneck of this prototype, which is why the pipeline paces itself and resumes.
+The model is **not** the cost driver. A self-hosted open model on an in-country GPU is a fixed monthly cost, plausibly in the low thousands of dollars (my rough estimate; it depends on hardware and hosting, and needs a real quote). Human review of ~58% escalations dominates everything. The in-country hosting requirement (Part C) rules out these foreign APIs anyway. The free tier's limits (8k tokens/min and a rolling **200k tokens/day per model**, about 180 complaints) were the practical bottleneck of this prototype, which is why the pipeline paces itself and resumes.
 
 ### Failure modes and mitigations
 
 | Failure | Seen here? | Mitigation |
 |---|---|---|
-| Invalid / hallucinated output format | No (0/100) | Pydantic `Literal` schema, error-feedback retry, safe fallback |
-| Inconsistent route for the same text | Yes (90% re-run agreement; template split 4/3) | Deterministic guards for safety; cluster templated complaints and route them once; v2 prompt with explicit "fraud > customer service" examples |
+| Invalid / hallucinated output format | No (0/330) | Pydantic `Literal` schema, error-feedback retry, safe fallback |
+| Inconsistent route for the same text | Yes (90% re-run agreement; 25-copy template split 15/10) | Deterministic guards for safety; cluster templated complaints and route them once; v2 prompt with explicit "fraud > customer service" examples |
 | Prompt injection | Yes (fake delimiter worked once) | Delimiters + instruction; guards can only add escalation; log injection patterns |
 | Summary hallucination | Not found by the automatic check | Grounding check; human rating; show original next to summary in the agent UI |
-| Over-escalation | 51–63% escalated | Measure precision with hand labels; split keyword-only escalations into a lighter queue |
+| Over-escalation | 58–63% escalated | Measure precision with hand labels; split keyword-only escalations into a lighter queue |
 | Provider silently changes the model | n/a | Pin versions; re-run this evaluation on every change (Part C) |
 
 ---
@@ -199,6 +200,6 @@ The model is **not** the cost driver. A self-hosted open model on an in-country 
 - **SMOTE.** It isn't installed and isn't needed: the class-weighting experiment showed reweighting hurts LightGBM here, so oversampling is unlikely to help, and imbalance is handled by the metric and threshold.
 - **Hyperparameter tuning, ensembles, deep learning (Part A).** ~340 training frauds can't support them without overfitting the validation set.
 - **Hour-of-day features (Part A).** Validation and test contain no night hours, so they couldn't be validated.
-- **Full 500-complaint batch on both models.** Free-tier daily token quotas allow roughly 150–200 triages per model per day. The pipeline resumes, so the remainder is a re-run of the same command.
+- **The last 170 of 500 complaints, and the full batch on the second model.** Groq's free tier allows 200k tokens/day per model (about 180 triages); the main model processed 330 of 500 plus all test sets before the pipeline stopped cleanly at the quota. It resumes where it left off: `python -m part_b_triage.src.pipeline --set all`.
 - **Prompt v2.** The template inconsistency points to a fix, but re-running the whole evaluation within the quota would have taken another day. It's listed as the first next step.
 - **LLM-as-judge for summaries.** Without human ratings to calibrate it, it would just be another unvalidated model. Human ratings come first.

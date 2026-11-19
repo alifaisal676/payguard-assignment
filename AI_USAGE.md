@@ -37,6 +37,8 @@ How I used AI tools on this assignment, kept as I go rather than written from me
 - **Cost analysis:** I first predicted the cost-optimal threshold would "barely move" with the cost assumptions; the sensitivity run showed it jumps between plateaus, and the write-up was corrected. The amount-aware rule's saving was first described without its CI; the CI includes 0, so it is now reported as "promising, not proven".
 - **Guards:** first version masked phone numbers as card numbers and split dates in the grounding check; caught by a demo run and fixed, then covered by unit tests.
 - **Prompt:** first summaries copied the customer's first person ("my card"); prompt changed to third person before any evaluation run.
+- **Rate limits:** mid-run I concluded from a token count that Groq had no hard daily cap; the provider's own error later confirmed a rolling 200k tokens/day limit. The README states the confirmed limit.
+- **Injection result:** the first report counted 2/8 successful injections against gpt-oss-120b. A clean re-run showed one of those changes also happens with no attack (run-to-run variation), so it's reported as 1 clear + 1 within noise.
 - **Memo diagram:** Mermaid code reused one ID for a node and a subgraph (would break rendering); fixed.
 
 ## Rough share of AI-generated code

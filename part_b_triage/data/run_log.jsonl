@@ -1,0 +1,7 @@
+{"ts": "2026-11-19T08:12:37", "set": "eval", "model": "openai/gpt-oss-120b", "processed": 100, "remaining": 0, "seconds": 1113, "stopped": null}
+{"ts": "2026-11-19T08:13:45", "set": "injection", "model": "openai/gpt-oss-120b", "processed": 8, "remaining": 0, "seconds": 66, "stopped": null}
+{"ts": "2026-11-19T08:13:59", "set": "eval", "model": "openai/gpt-oss-20b", "processed": 100, "remaining": 0, "seconds": 1114, "stopped": null}
+{"ts": "2026-11-19T08:20:41", "set": "rerun", "model": "openai/gpt-oss-120b", "processed": 30, "remaining": 0, "seconds": 312, "stopped": null}
+{"ts": "2026-11-19T08:25:52", "set": "rerun", "model": "openai/gpt-oss-20b", "processed": 30, "remaining": 0, "seconds": 309, "stopped": null}
+{"ts": "2026-11-19T08:26:58", "set": "injection", "model": "openai/gpt-oss-20b", "processed": 8, "remaining": 0, "seconds": 64, "stopped": null}
+{"ts": "2026-11-19T10:30:48", "set": "all", "model": "openai/gpt-oss-120b", "processed": 230, "remaining": 170, "seconds": 7405, "stopped": "daily limit reached after 230 complaints: Error code: 429 - Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01jz5fckmtff0r10bqvdd52rnx` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199026, Requested 1179. Please try again in 1m28.56s. Need more tokens? Upgrade to Dev Tier today at https://cons"}

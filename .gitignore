@@ -21,9 +21,14 @@ __pycache__/
 # Part A: creditcard.csv is ~150 MB, download per README
 part_a_fraud/data/*
 !part_a_fraud/data/.gitkeep
-# Part B: raw CFPB slice, LLM outputs and run logs
+# Part B: the raw slice (~1 MB, public, CFPB-redacted) and triage outputs ARE committed.
+# CFPB withdrew narratives from its API in Aug 2026, so re-downloading may not stay possible.
+# The per-call debug log is not committed.
 part_b_triage/data/*
 !part_b_triage/data/.gitkeep
+!part_b_triage/data/complaints_raw.json
+!part_b_triage/data/triage_outputs__*.jsonl
+!part_b_triage/data/run_log.jsonl
 # Large/binary data anywhere in the repo
 *.csv
 *.parquet

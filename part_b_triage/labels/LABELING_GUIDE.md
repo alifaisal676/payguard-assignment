@@ -4,7 +4,8 @@ Written **before** labeling, so the labels follow fixed rules rather than whatev
 
 ## Process
 
-- 100 complaints, stratified across six product groups (`labels/eval_set.csv`, seed 7), shown in random order.
+- Eval set: 100 complaints, stratified across six product groups (`labels/eval_set.csv`, seed 7), in random order.
+- **What gets labeled:** every eval complaint where the two models (gpt-oss-120b, gpt-oss-20b) disagree on category, urgency or final escalation (the hard cases), plus a **random** sample of 20 where they agree. `evaluate.py` re-weights the two groups for unbiased overall rates. The labeler is *not* told how the models answered, only which group a complaint belongs to.
 - Labeled by a human (the author) with `python -m part_b_triage.src.labeling label`.
 - The labeler sees **only the complaint text**: not the model's output, and not CFPB's product/issue fields. Those are used separately as weak labels, so hiding them keeps the two comparisons independent.
 - Label the complaint as **the customer describes it**. Don't judge whether they are right.

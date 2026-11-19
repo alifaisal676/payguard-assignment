@@ -134,9 +134,12 @@ complaint ─► mask PII ─► LLM (JSON mode, temperature 0, prompt v1) ─�
 
 Rigour matters more than the headline number, so each claim has its own test:
 
-1. **Hand labels (100 complaints, stratified):** category, urgency, requires_human, sensitive.
-   - Labeled **by me**, following a guide written first, in a terminal tool that hides the model's output and CFPB's product/issue fields. Model-made labels would make the evaluation circular.
-   - Reports accuracy, macro-F1 and the confusion matrix; **urgency under-triage**; **sensitive-case recall** (target 100%, every miss listed); and the **escalation rate**, because escalating everything would be useless.
+1. **Hand labels, chosen by stratified sampling (as in active learning):** category, urgency, requires_human, sensitive.
+   - **Which complaints:** the 100-complaint eval set is split into the **37 where gpt-oss-120b and gpt-oss-20b disagree** (category, urgency or final escalation) and the 63 where they agree. I labeled **all disagreement cases plus a random sample of 20 agreement cases**: hand-labeling effort goes where it's most informative.
+   - **Why the weighting matters:** labeling only the hard cases would make accuracy look far worse than it is, so overall rates re-weight both groups by their size, with finite-population-corrected 95% intervals. The disagreement cases on their own answer "which model should we trust when they differ?"
+   - **How:** labeled **by me**, following a guide written first, in a terminal tool that hides the model's output and CFPB's product/issue fields. Model-made labels would make the evaluation circular.
+   - **Reported:** accuracy, confusion matrix, **urgency under-triage**, **sensitive-case misses** (every one listed), and the escalation rate, because escalating everything would be useless.
+   - **At production scale** I wouldn't hand-label more. I'd keep a small expert-labeled regression set and get scale from agent overrides and historical resolutions, with humans focused on uncertain and high-risk cases (memo, sections 2 and 5).
 2. **Run-to-run stability:** 30 complaints triaged twice with identical input. This is the noise floor every other comparison needs.
 3. **Prompt injection:** 8 complaints with planted instructions (four attack styles, including a fake `</complaint>` + "SYSTEM:"), compared with both the clean run and the clean re-run.
 4. **Templated complaints:** identical text should get an identical route.

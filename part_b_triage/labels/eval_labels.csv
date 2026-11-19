@@ -1,0 +1,4 @@
+complaint_id,category,urgency,requires_human,sensitive,notes
+11048773,Credit reporting & identity issues,medium,True,True,
+11048362,Loans & debt collection,low,True,False,
+8427978,"Billing, fees & payment disputes",high,True,True,

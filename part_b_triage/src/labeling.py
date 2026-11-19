@@ -1,7 +1,16 @@
 """Build the evaluation set and label it by hand, in the terminal.
 
 The labels must come from a human. If an LLM wrote the labels and an LLM made the
-predictions, the evaluation would be circular. So this tool deliberately hides:
+predictions, the evaluation would be circular.
+
+Which complaints get labeled (stratified sampling, as in active learning):
+- ALL eval complaints where gpt-oss-120b and gpt-oss-20b disagree (category, urgency or
+  final escalation): the hard cases, where labels are most informative;
+- plus a RANDOM sample of AGREE_SAMPLE complaints where they agree.
+Labeling only the hard cases would make accuracy look far worse than it is; evaluate.py
+re-weights the two strata by their size to give an unbiased overall estimate.
+
+This tool deliberately hides:
 - the model's output, and
 - CFPB's own product/issue fields (used separately as *weak labels*; showing them would bias
   the hand labels towards them and inflate weak-label agreement).
@@ -31,6 +40,8 @@ SUMMARY_REVIEW = LABEL_DIR / "summary_review.csv"
 EVAL_SIZE, SEED = 100, 7
 LABEL_FIELDS = ["complaint_id", "category", "urgency", "requires_human", "sensitive", "notes"]
 URG = {"l": "low", "m": "medium", "h": "high"}
+MODELS = ("openai/gpt-oss-120b", "openai/gpt-oss-20b")   # disagreement between these defines the hard stratum
+AGREE_SAMPLE = 20                                          # random cases labeled from the agreement stratum
 
 
 def make_set():
@@ -82,16 +93,49 @@ def _ask(prompt, valid):
         print(f"  please type one of: {', '.join(sorted(valid))}")
 
 
-def label():
-    complaints = load_complaints()
+def eval_order() -> list[str]:
     with EVAL_SET.open(encoding="utf-8") as f:
-        ids = [r["complaint_id"] for r in csv.DictReader(f)]
+        return [r["complaint_id"] for r in csv.DictReader(f)]   # already in random order
+
+
+def _eval_outputs(model: str) -> dict:
+    p = output_path(model)
+    if not p.exists():
+        return {}
+    rows = [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return {r["complaint_id"]: r for r in rows if r["set"] == "eval"}
+
+
+def strata() -> tuple[list[str], list[str]]:
+    """Split the eval set into (disagree, agree): the two models differ on category, urgency
+    or final escalation, or they agree on all three. Order inside each stratum stays random."""
+    a, b = _eval_outputs(MODELS[0]), _eval_outputs(MODELS[1])
+    def differs(i):
+        return (a[i]["triage"]["category"] != b[i]["triage"]["category"]
+                or a[i]["triage"]["urgency"] != b[i]["triage"]["urgency"]
+                or a[i]["requires_human_final"] != b[i]["requires_human_final"])
+    ids = [i for i in eval_order() if i in a and i in b]
+    return [i for i in ids if differs(i)], [i for i in ids if not differs(i)]
+
+
+def label():
+    """Label ALL disagreement cases, then a random sample of AGREE_SAMPLE agreement cases.
+
+    This is stratified sampling: hard cases are fully covered, easy cases are sampled, and
+    evaluate.py re-weights both strata so overall accuracy stays unbiased."""
+    complaints = load_complaints()
+    disagree, agree = strata()
     done = _read(LABELS)
-    todo = [i for i in ids if i not in done]
-    print(f"{len(done)} labeled, {len(todo)} to go. Type q at any prompt to stop (progress is saved).")
+    n_agree_done = sum(i in done for i in agree)
+    todo = [i for i in disagree if i not in done]
+    todo += [i for i in agree if i not in done][: max(0, AGREE_SAMPLE - n_agree_done)]
+    print(f"Plan: all {len(disagree)} cases where the two models disagree + {AGREE_SAMPLE} random cases where they agree.\n"
+          f"Done: {sum(i in done for i in disagree)}/{len(disagree)} disagreement, {n_agree_done}/{AGREE_SAMPLE} agreement. "
+          f"{len(todo)} to go. Type q at any prompt to stop (progress is saved).")
     cat_menu = "  ".join(f"{k}={c}" for k, c in enumerate(CATEGORIES, 1))
-    for n, cid in enumerate(todo, len(done) + 1):
-        print("\n" + "=" * 100 + f"\n[{n}/{len(ids)}] complaint {cid}")
+    for n, cid in enumerate(todo, 1):
+        group = "disagreement case" if cid in disagree else "random agreement case"
+        print("\n" + "=" * 100 + f"\n[{n}/{len(todo)}] complaint {cid}  ({group})")
         _show(complaints[cid]["consumer_complaint_narrative"])
         print("\n" + textwrap.fill(cat_menu, 100))
         c = _ask("category 1-7: ", {str(k) for k in range(1, 8)} | {"q"})
@@ -105,7 +149,9 @@ def label():
         notes = input("notes (optional, Enter to skip): ").strip()
         _append(LABELS, LABEL_FIELDS, {"complaint_id": cid, "category": CATEGORIES[int(c) - 1], "urgency": URG[u],
                                        "requires_human": h == "y", "sensitive": s == "y", "notes": notes})
-    print(f"\nSaved to {LABELS}: {len(_read(LABELS))}/{len(ids)} labeled.")
+    done = _read(LABELS)
+    print(f"\nSaved to {LABELS}: {sum(i in done for i in disagree)}/{len(disagree)} disagreement, "
+          f"{sum(i in done for i in agree)}/{AGREE_SAMPLE} agreement cases labeled.")
 
 
 def summaries(model: str = "openai/gpt-oss-120b", n: int = 30):

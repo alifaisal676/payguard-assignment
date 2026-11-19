@@ -25,7 +25,7 @@ How I used AI tools on this assignment, kept as I go rather than written from me
 
 ## Things I did not delegate to AI
 
-- **Hand labels for the Part B evaluation set.** Labeled by me in the terminal tool (`labeling.py`), following the labeling guide written beforehand, without seeing the model's output or CFPB's product/issue fields, so the evaluation isn't an AI grading an AI.
+- **Hand labels for the Part B evaluation set.** Labeled by me in the terminal tool (`labeling.py`), following the labeling guide written beforehand, without seeing the model's output or CFPB's product/issue fields, so the evaluation isn't an AI grading an AI. **My decision:** rather than label all 100, label every case where the two models disagree plus a random sample of agreement cases (stratified sampling). The AI implemented the sampling and the re-weighted estimate.
 - **Summary faithfulness ratings** (30 summaries), also mine.
 - The LLM that does the triage (Groq gpt-oss) is a *component under test*, not a coding aid; its outputs are evaluated, never used as labels.
 

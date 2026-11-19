@@ -16,6 +16,8 @@ pip install -r requirements.txt
 cp .env.example .env                                  # add GROQ_API_KEY (free: console.groq.com/keys)
 ```
 
+On Windows, clone into a short path (e.g. `C:\work\payguard`): `jupyter` installs files with very long paths that can exceed Windows' 260-character limit inside deeply nested folders.
+
 Run everything from the repo root:
 
 | Step | Command |

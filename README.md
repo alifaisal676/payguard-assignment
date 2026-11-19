@@ -8,6 +8,29 @@ Two prototypes and a production memo for PayGuard (fictional digital payments co
 
 How AI tools were used: [AI_USAGE.md](AI_USAGE.md).
 
+## Summary
+
+**A. Fraud detection is viable, with the right evaluation.**
+- **Results:** on a chronological test period (74 frauds), LightGBM reaches **PR-AUC 0.80** [0.72–0.88] vs. 0.74 for Logistic Regression. That lead is probable but not statistically conclusive.
+- **Cost:** with an explicit cost model and a threshold chosen on validation, it catches **56 of 74 frauds at 88% precision** and cuts the test-period fraud cost from **€9.6k to €3.7k**.
+- **Recommendation:** three tiers (block ≥ 0.86 at 96% precision / step-up / approve).
+- **Speed:** scoring takes **< 1 ms**; production effort belongs in behavioural features and a feature store, not the model.
+
+**B. LLM complaint triage is viable only with safety rules outside the model.**
+- **Robustness:** schema validation gave **0 failures in 330** complaints.
+- **Alone, the LLM isn't safe enough:** it changes its own escalation decision on 1 in 10 identical re-runs and was moved once by prompt injection. **Deterministic guards made the final escalation 100% stable and blocked every injection attempt.**
+- **Accuracy is bounded:** routing accuracy is **56% (my original labels) to 78% (guide-adjudicated labels)**. Measuring label agreement (Cohen's κ ≈ 0.3 on the safety fields) showed the gap is mostly inconsistent labeling, not the model.
+- **Safety is short of target:** sensitive cases escalated **90–97%**, below the 100% required for automation.
+- **Cost:** inference costs **≈ $11 per 50,000 complaints**; human review and in-country hosting are the real costs.
+
+**C. Recommendation ([memo.md](memo.md)):** launch complaint triage in **shadow mode on a self-hosted, in-country open model**, with two SMEs building an adjudicated evaluation set and hard go/no-go thresholds (100% sensitive recall) before any automation. Fraud scoring follows once PayGuard's own behavioural features are available.
+
+**Changes from the original plan, each justified in the text:**
+- **CFPB data:** CFPB withdrew complaint narratives in Aug 2026, so the data came from a verified mirror.
+- **LightGBM class weighting:** `scale_pos_weight=1` (full reweighting broke training).
+- **`Time` dropped as a feature:** the model learned "later = safer" from this file.
+- **Labeling:** stratified (all model disagreements + a random sample) instead of 100 random complaints.
+
 ## Setup (Python 3.12)
 
 ```bash

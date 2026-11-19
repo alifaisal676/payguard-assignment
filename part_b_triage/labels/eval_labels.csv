@@ -1,58 +1,58 @@
-complaint_id,category,urgency,requires_human,sensitive,notes
-11048773,Credit reporting & identity issues,medium,True,True,
-11048362,Loans & debt collection,low,True,False,
-8427978,"Billing, fees & payment disputes",high,True,True,
-11671939,Customer service & communication,medium,True,True,
-11805194,Customer service & communication,medium,True,True,
-12417410,Credit reporting & identity issues,low,False,True,
-11672756,Customer service & communication,medium,True,True,
-11672759,Customer service & communication,low,True,True,
-12325386,Fraud & unauthorized transactions,high,True,True,
-11672146,Customer service & communication,medium,True,True,
-11672011,Customer service & communication,medium,True,True,y
-8904082,Fraud & unauthorized transactions,high,True,True,
-8904473,Customer service & communication,high,True,True,
-18889703,Fraud & unauthorized transactions,high,True,True,
-20515122,Credit reporting & identity issues,medium,False,False,
-12417391,Credit reporting & identity issues,low,False,False,
-11675636,Customer service & communication,medium,True,True,
-8437148,"Billing, fees & payment disputes",medium,True,True,
-18353232,Credit reporting & identity issues,low,False,False,
-11672845,Fraud & unauthorized transactions,high,True,True,
-8266043,Customer service & communication,low,False,False,
-14509237,Credit reporting & identity issues,low,True,False,
-8329377,Customer service & communication,medium,True,False,
-14515288,Fraud & unauthorized transactions,medium,True,True,
-11672777,Fraud & unauthorized transactions,medium,True,True,
-9256028,Credit reporting & identity issues,medium,True,True,y
-17247535,Loans & debt collection,high,True,True,
-11672771,Credit reporting & identity issues,medium,True,False,
-16256790,Credit reporting & identity issues,low,False,False,
-20817304,"Billing, fees & payment disputes",low,False,False,
-14088990,Credit reporting & identity issues,low,True,False,
-10743346,Customer service & communication,low,False,False,
-11672107,Fraud & unauthorized transactions,medium,True,True,
-8689406,Account access & management,low,False,False,
-20519870,Account access & management,medium,True,False,
-15095391,Fraud & unauthorized transactions,high,True,True,
-8436647,"Billing, fees & payment disputes",low,True,False,
-15763813,"Billing, fees & payment disputes",low,True,False,
-11671987,Fraud & unauthorized transactions,medium,True,True,
-10741994,Credit reporting & identity issues,low,True,False,
-10743230,"Billing, fees & payment disputes",high,True,True,
-12331609,Account access & management,low,True,False,
-20738544,"Billing, fees & payment disputes",medium,True,True,
-12304022,"Billing, fees & payment disputes",high,True,True,
-14514817,"Billing, fees & payment disputes",high,True,True,
-10498361,"Billing, fees & payment disputes",low,True,False,
-14514835,Credit reporting & identity issues,medium,True,True,
-11078646,Customer service & communication,low,False,False,
-14508934,Customer service & communication,low,False,False,
-10657372,Credit reporting & identity issues,medium,True,False,
-11359108,Fraud & unauthorized transactions,high,True,True,
-12331634,Credit reporting & identity issues,low,True,False,
-15763769,Credit reporting & identity issues,medium,True,False,
-18453701,Credit reporting & identity issues,medium,False,False,n
-12341675,Credit reporting & identity issues,low,False,False,
-8223455,Customer service & communication,low,True,False,
-8266061,Credit reporting & identity issues,low,False,False,
+complaint_id,category,urgency,requires_human,sensitive,notes,adjudication
+11048773,Credit reporting & identity issues,medium,True,True,,
+11048362,Loans & debt collection,medium,False,False,,"AI guide review (2nd reviewer) changed urgency, requires_human from Loans & debt collection/low/True/False: unresolved charge-off dispute = medium (§2); no §3 trigger"
+8427978,"Billing, fees & payment disputes",medium,False,False,,"AI guide review (2nd reviewer) changed urgency, requires_human, sensitive from Billing, fees & payment disputes/high/True/True: double-charged insurance: wrong charge, no immediate harm (§2 medium); no §3/§4 trigger"
+11671939,Customer service & communication,medium,True,True,,
+11805194,Fraud & unauthorized transactions,medium,True,True,,AI guide review (2nd reviewer) changed category from Customer service & communication/medium/True/True: identical Cash App template: alleges failure to prevent fraud + Reg E error-resolution (unauthorized-transfer) dispute; guide tie-break fraud > customer service; same label for all copies
+12417410,Credit reporting & identity issues,medium,False,False,,"AI guide review (2nd reviewer) changed urgency, sensitive from Credit reporting & identity issues/low/False/True: statement/report error, unresolved (§2 medium); no §4 trigger"
+11672756,Fraud & unauthorized transactions,medium,True,True,,AI guide review (2nd reviewer) changed category from Customer service & communication/medium/True/True: identical Cash App template: alleges failure to prevent fraud + Reg E error-resolution (unauthorized-transfer) dispute; guide tie-break fraud > customer service; same label for all copies
+11672759,Fraud & unauthorized transactions,medium,True,True,,"AI guide review (2nd reviewer) changed category, urgency from Customer service & communication/low/True/True: identical Cash App template: alleges failure to prevent fraud + Reg E error-resolution (unauthorized-transfer) dispute; guide tie-break fraud > customer service; same label for all copies"
+12325386,Fraud & unauthorized transactions,high,True,True,,"AI guide review (2nd reviewer) kept: scam where money was taken (credit-repair firm posing as creditor) = fraud/scam, sensitive (§1, §4)"
+11672146,Fraud & unauthorized transactions,medium,True,True,,AI guide review (2nd reviewer) changed category from Customer service & communication/medium/True/True: identical Cash App template: alleges failure to prevent fraud + Reg E error-resolution (unauthorized-transfer) dispute; guide tie-break fraud > customer service; same label for all copies
+11672011,Customer service & communication,medium,True,True,y,
+8904082,"Billing, fees & payment disputes",high,False,False,,"AI guide review (2nd reviewer) changed category, sensitive, requires_human from Fraud & unauthorized transactions/high/True/True: transfer stuck by provider error, not fraud: payment not applied (§1 billing); cannot access funds keeps high; no §4 trigger"
+8904473,Account access & management,high,False,False,,"AI guide review (2nd reviewer) changed category, sensitive, requires_human from Customer service & communication/high/True/True: guide known ambiguity: bank closed account and kept money -> account access, high; no §4 trigger"
+18889703,Fraud & unauthorized transactions,high,True,True,,
+20515122,Credit reporting & identity issues,medium,True,True,,"AI guide review (2nd reviewer) changed requires_human, sensitive from Credit reporting & identity issues/medium/False/False: account they did not open, explicitly suspects identity theft -> §3/§4 yes (guide known ambiguity)"
+12417391,Credit reporting & identity issues,medium,False,False,,AI guide review (2nd reviewer) changed urgency from Credit reporting & identity issues/low/False/False: unresolved credit-report error = medium (§2)
+11675636,Fraud & unauthorized transactions,medium,True,True,,AI guide review (2nd reviewer) changed category from Customer service & communication/medium/True/True: identical Cash App template: alleges failure to prevent fraud + Reg E error-resolution (unauthorized-transfer) dispute; guide tie-break fraud > customer service; same label for all copies
+8437148,Loans & debt collection,medium,False,False,,"AI guide review (2nd reviewer) changed category, sensitive, requires_human from Billing, fees & payment disputes/medium/True/True: auto-loan origination/disclosure dispute -> loans (§1); no §4 trigger"
+18353232,Credit reporting & identity issues,medium,True,True,,"AI guide review (2nd reviewer) changed urgency, requires_human, sensitive from Credit reporting & identity issues/low/False/False: alleges unauthorized inquiry as identity theft -> §3/§4 yes; unresolved = medium"
+11672845,Fraud & unauthorized transactions,high,True,True,,
+8266043,Credit reporting & identity issues,medium,True,True,,"AI guide review (2nd reviewer) changed category, urgency, requires_human, sensitive from Customer service & communication/low/False/False: accounts on report that are not theirs -> credit reporting & identity, human yes (guide known ambiguity)"
+14509237,Credit reporting & identity issues,medium,True,True,,"AI guide review (2nd reviewer) changed urgency, sensitive from Credit reporting & identity issues/low/True/False: collector reporting account they never had -> identity issue (guide known ambiguity); unresolved = medium"
+8329377,Customer service & communication,low,False,False,,"AI guide review (2nd reviewer) changed urgency, requires_human from Customer service & communication/medium/True/False: service quality only -> low (§2); no §3 trigger"
+14515288,Fraud & unauthorized transactions,medium,True,True,,
+11672777,Fraud & unauthorized transactions,medium,True,True,,AI guide review (2nd reviewer) kept: identical Cash App template: alleges failure to prevent fraud + Reg E error-resolution (unauthorized-transfer) dispute; guide tie-break fraud > customer service; same label for all copies
+9256028,Credit reporting & identity issues,medium,True,True,y,AI guide review (2nd reviewer) kept: credit pulled without consent = possible identity misuse; keep human/sensitive
+17247535,Loans & debt collection,high,False,False,,"AI guide review (2nd reviewer) changed sensitive, requires_human from Loans & debt collection/high/True/True: 'illegal practices' claim but no lawyer/lawsuit/regulator -> not §4; high kept (title withheld, fees still added)"
+11672771,Credit reporting & identity issues,medium,False,False,,"AI guide review (2nd reviewer) changed requires_human from Credit reporting & identity issues/medium/True/False: generic validation/consumer-act template, no §3 trigger"
+16256790,Credit reporting & identity issues,medium,False,False,,AI guide review (2nd reviewer) changed urgency from Credit reporting & identity issues/low/False/False: unresolved credit-report dispute = medium (§2)
+20817304,Account access & management,low,False,False,,"AI guide review (2nd reviewer) changed category from Billing, fees & payment disputes/low/False/False: cannot view statements in app = account access/management, not a charge dispute; service-only -> low kept"
+14088990,Credit reporting & identity issues,medium,True,True,,"AI guide review (2nd reviewer) changed urgency, sensitive from Credit reporting & identity issues/low/True/False: 'not my account' on credit report -> identity issue (guide known ambiguity); unresolved = medium"
+10743346,Customer service & communication,low,False,False,,
+11672107,Fraud & unauthorized transactions,medium,True,True,,
+8689406,Account access & management,low,False,False,,
+20519870,Loans & debt collection,medium,False,False,,"AI guide review (2nd reviewer) changed category, requires_human from Account access & management/medium/True/False: debt validation request -> loans & debt collection (§1); no §3 trigger"
+15095391,Account access & management,high,True,True,,"AI guide review (2nd reviewer) changed category from Fraud & unauthorized transactions/high/True/True: benefits deposited to closed account, funds held -> account access (guide known ambiguity); veteran + stated hardship keeps vulnerable/sensitive"
+8436647,Credit reporting & identity issues,medium,False,False,,"AI guide review (2nd reviewer) changed category, urgency, requires_human from Billing, fees & payment disputes/low/True/False: dispute is about how a charge-off is reported -> credit reporting; unresolved = medium; no trigger"
+15763813,Loans & debt collection,medium,False,False,,"AI guide review (2nd reviewer) changed category, urgency, requires_human from Billing, fees & payment disputes/low/True/False: collector failed to validate debt (collection behaviour) -> loans & debt collection (guide known ambiguity); medium"
+11671987,Fraud & unauthorized transactions,medium,True,True,,AI guide review (2nd reviewer) kept: identical Cash App template: alleges failure to prevent fraud + Reg E error-resolution (unauthorized-transfer) dispute; guide tie-break fraud > customer service; same label for all copies
+10741994,Credit reporting & identity issues,medium,False,False,,"AI guide review (2nd reviewer) changed urgency, requires_human from Credit reporting & identity issues/low/True/False: unresolved credit-report dispute = medium; no §3 trigger"
+10743230,"Billing, fees & payment disputes",high,False,False,,"AI guide review (2nd reviewer) changed sensitive, requires_human from Billing, fees & payment disputes/high/True/True: overcharges/fees/credit limit: billing, no §4 trigger; high kept (money still being taken)"
+12331609,Credit reporting & identity issues,medium,True,True,,"AI guide review (2nd reviewer) changed category, urgency, sensitive from Account access & management/low/True/False: identical template: consumer-report privacy framed as identity theft -> credit & identity, human/sensitive yes; same label as copy"
+20738544,"Billing, fees & payment disputes",medium,False,False,,"AI guide review (2nd reviewer) changed sensitive, requires_human from Billing, fees & payment disputes/medium/True/True: new monthly fee dispute: billing medium, no §4 trigger"
+12304022,"Billing, fees & payment disputes",high,True,True,,
+14514817,Account access & management,high,False,False,,"AI guide review (2nd reviewer) changed category, sensitive, requires_human from Billing, fees & payment disputes/high/True/True: funds blocked on account -> account access (held funds), high; no §4 trigger"
+10498361,"Billing, fees & payment disputes",medium,True,False,,"AI guide review (2nd reviewer) changed urgency from Billing, fees & payment disputes/low/True/False: unresolved charge after autopay revoked = medium; human kept (fraud vs billing ambiguous)"
+14514835,Credit reporting & identity issues,medium,True,True,,
+11078646,Customer service & communication,low,False,False,,
+14508934,Customer service & communication,low,False,False,,
+10657372,Credit reporting & identity issues,high,True,True,,"AI guide review (2nd reviewer) changed urgency, sensitive from Credit reporting & identity issues/medium/True/False: SSN used to open accounts = identity theft in progress -> high, sensitive (§2, §4)"
+11359108,Fraud & unauthorized transactions,high,True,True,,
+12331634,Credit reporting & identity issues,medium,True,True,,"AI guide review (2nd reviewer) changed urgency, sensitive from Credit reporting & identity issues/low/True/False: identical template: same label as 12331609"
+15763769,Other / unclear,medium,True,True,,"AI guide review (2nd reviewer) changed category, sensitive from Credit reporting & identity issues/medium/True/False: unfilled cease-and-desist template: too unclear to route -> other/unclear; threatens legal remedies -> sensitive"
+18453701,Credit reporting & identity issues,medium,False,False,n,"AI guide review (2nd reviewer) kept: eviction is a past judgment, not a vulnerable customer now -> keep not sensitive"
+12341675,Credit reporting & identity issues,medium,True,True,,"AI guide review (2nd reviewer) changed urgency, requires_human, sensitive from Credit reporting & identity issues/low/False/False: alleges fraudulent credit inquiry -> fraud/identity allegation (§3/§4); unresolved = medium"
+8223455,Account access & management,medium,False,False,,"AI guide review (2nd reviewer) changed category, urgency, requires_human from Customer service & communication/low/True/False: card keeps being declined = trouble using card -> account access; balance unusable = medium; no trigger"
+8266061,Credit reporting & identity issues,medium,False,False,,AI guide review (2nd reviewer) changed urgency from Credit reporting & identity issues/low/False/False: unresolved credit-report dispute = medium (§2)

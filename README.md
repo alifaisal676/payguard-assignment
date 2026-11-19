@@ -138,6 +138,7 @@ Rigour matters more than the headline number, so each claim has its own test:
    - **Which complaints:** the 100-complaint eval set is split into the **37 where gpt-oss-120b and gpt-oss-20b disagree** (category, urgency or final escalation) and the 63 where they agree. I labeled **all disagreement cases plus a random sample of 20 agreement cases**: hand-labeling effort goes where it's most informative.
    - **Why the weighting matters:** labeling only the hard cases would make accuracy look far worse than it is, so overall rates re-weight both groups by their size, with finite-population-corrected 95% intervals. The disagreement cases on their own answer "which model should we trust when they differ?"
    - **How:** labeled **by me**, following a guide written first, in a terminal tool that hides the model's output and CFPB's product/issue fields. Model-made labels would make the evaluation circular.
+   - **Adjudication:** labels that broke an explicit guide rule were re-checked by an AI second reviewer (disclosed). The original and adjudicated results are both reported, with Cohen's κ between them.
    - **Reported:** accuracy, confusion matrix, **urgency under-triage**, **sensitive-case misses** (every one listed), and the escalation rate, because escalating everything would be useless.
    - **At production scale** I wouldn't hand-label more. I'd keep a small expert-labeled regression set and get scale from agent overrides and historical resolutions, with humans focused on uncertain and high-risk cases (memo, sections 2 and 5).
 2. **Run-to-run stability:** 30 complaints triaged twice with identical input. This is the noise floor every other comparison needs.
@@ -151,7 +152,34 @@ All proportions carry 95% Wilson intervals.
 
 ### Results
 
-> **Hand-label metrics (accuracy, under-triage, sensitive recall) are filled in by `evaluate.py` once `labels/eval_labels.csv` exists.** Everything below doesn't depend on labels.
+#### Against hand labels (57 labeled: all 37 model disagreements + 20 random agreements, re-weighted)
+
+The labels went through two stages, and **both results are reported**:
+1. **Original human labels** (`labels/eval_labels_original.csv`): my own judgment.
+2. **Guide-adjudicated labels** (`labels/eval_labels.csv`): 43 of the 57 labels broke an explicit rule of the written guide (e.g. "sensitive" with no fraud/legal/vulnerable/self-harm content, or "low" urgency for an unresolved charge). These were re-checked **by an AI second reviewer** (Claude) from the complaint text and the guide only, with every decision and its reason recorded. 38 changed.
+
+| gpt-oss-120b (weighted, 95% CI) | Original human labels | Guide-adjudicated labels |
+|---|---|---|
+| Category correct | 56% [45, 67] | **78%** [69, 86] |
+| Urgency correct | 36% [26, 46] | 74% [64, 85] |
+| Urgency **under**-triaged | 19% [9, 29] | 15% [5, 24] |
+| Final escalation decision correct | 56% [44, 67] | **91%** [83, 98] |
+
+| Safety (unweighted, guide-adjudicated labels) | gpt-oss-120b | gpt-oss-20b |
+|---|---|---|
+| **Sensitive cases escalated (LLM + guards)** | 27/30 = **90%** | 29/30 = **97%** |
+| requires_human recall: LLM alone → with guards | 61% → 87% | 74% → 94% |
+| requires_human precision (with guards) | 96% | 72% |
+| Category accuracy, model vs model on the 37 hard cases | 24/37 | 23/37 |
+
+**How to read this honestly**
+- **The two label sets answer different questions.** The original labels ask "does the model match this person's judgment?" The adjudicated labels ask "does the system implement the *written policy*?" The second is what a production system should be held to.
+- **The gap is mostly label quality, not the model.** Agreement between my original labels and the guide is low for the safety fields (Cohen's κ: category 0.60, urgency 0.43, requires_human 0.27, sensitive 0.33). A single labeler drifted from the guide, mainly by calling disputed charges "sensitive" and credit-report errors "low". The template test confirmed it: I split identical copies of the Cash App complaint 5/2, just as the models did.
+- **The adjudicated numbers are probably optimistic.** The AI reviewer and the models read the same guide in similar ways, and the reviewer had seen some model predictions earlier in the project, so it isn't fully independent. Treat **56% and 78% as a lower and an upper bound**. The fix is the standard one: **two human labelers plus adjudication**, with agreement (κ) measured before any accuracy number is trusted (memo, section 6).
+- **Safety is not at target.** Even on the policy-aligned labels, the main model failed to escalate 3 of 30 sensitive cases (the smaller model 1 of 30). Examples: a veteran whose protected benefits were held ("veteran" and "hardship" aren't in the vulnerable-customer rules), and "not my account" credit-report disputes that the identity-theft rule doesn't match. Candidate rules come out of this error analysis, but they were found *on* the evaluation set, so they must be validated on freshly labeled data before being trusted.
+- **Model choice: a tie on accuracy, a trade-off on safety.** The 20b model escalates more (97% sensitive recall, but 72% precision and 70% of cases sent to a human). The 120b model is more precise (96%) but misses more sensitive cases. For launch I'd use the more conservative setting and tighten precision with better guard rules.
+
+#### Without labels
 
 | | gpt-oss-120b | gpt-oss-20b |
 |---|---|---|
@@ -207,4 +235,5 @@ The model is **not** the cost driver. A self-hosted open model on an in-country 
 - **Hour-of-day features (Part A).** Validation and test contain no night hours, so they couldn't be validated.
 - **The last 170 of 500 complaints, and the full batch on the second model.** Groq's free tier allows 200k tokens/day per model (about 180 triages); the main model processed 330 of 500 plus all test sets before the pipeline stopped cleanly at the quota. It resumes where it left off: `python -m part_b_triage.src.pipeline --set all`.
 - **Prompt v2.** The template inconsistency points to a fix, but re-running the whole evaluation within the quota would have taken another day. It's listed as the first next step.
+- **Summary faithfulness ratings (30 summaries) and a second human labeler.** Time. The automatic grounding check found no invented numbers or dates; human ratings and a second labeler are the first next steps.
 - **LLM-as-judge for summaries.** Without human ratings to calibrate it, it would just be another unvalidated model. Human ratings come first.

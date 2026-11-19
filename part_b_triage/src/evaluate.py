@@ -367,12 +367,24 @@ def adjudication_summary(labels: pd.DataFrame) -> str:
     if not LABELS_ORIGINAL.exists() or "adjudication" not in labels.columns:
         return ""
     adj = labels["adjudication"].astype(str)
-    reviewed, changed = int(adj.str.len().gt(0).sum()), int(adj.str.startswith("changed").sum())
+    reviewed = int(adj.str.len().gt(0).sum())
+    changed = int(adj.str.contains(r"(?:^|\) )changed ", regex=True).sum())
+    from sklearn.metrics import cohen_kappa_score
     original = load_labels(LABELS_ORIGINAL)
-    return (f"**Labels were adjudicated against the written guide** (`labeling.py adjudicate`): {reviewed} labels that "
-            f"broke an explicit guide rule were re-checked without seeing model output; **{changed} changed**, the rest "
-            "kept (reasons recorded in `eval_labels.csv`). Numbers below use the adjudicated labels; the "
-            "**original** labels give:\n\n" + stratified_table_only(original) + "\n")
+    m = original.merge(labels, on="complaint_id", suffixes=("_orig", "_adj"))
+    agree = ["| Field | Same label | Cohen's kappa |", "|---|---|---|"]
+    for f in ["category", "urgency", "requires_human", "sensitive"]:
+        a, b = m[f"{f}_orig"].astype(str), m[f"{f}_adj"].astype(str)
+        agree.append(f"| {f} | {(a == b).sum()}/{len(m)} | {cohen_kappa_score(a, b):.2f} |")
+    who = "an AI second reviewer" if adj.str.contains("AI guide review").any() else "the labeler"
+    return (f"**Labels were adjudicated against the written guide** by {who}: {reviewed} labels that broke an explicit "
+            f"guide rule were re-checked from the complaint text and the guide only (model output not shown); "
+            f"**{changed} changed**, the rest kept. Every decision and its reason is in `labels/eval_labels.csv`; the "
+            "untouched human labels are in `labels/eval_labels_original.csv`.\n\n"
+            "**Agreement between the original human labels and the guide-adjudicated labels (all labeled complaints):**\n\n"
+            + "\n".join(agree) + "\n\n"
+            "**Results with the ORIGINAL human labels:**\n\n" + stratified_table_only(original) +
+            "\n**Results with the GUIDE-ADJUDICATED labels:**\n\n")
 
 
 def stratified_table_only(labels: pd.DataFrame) -> str:

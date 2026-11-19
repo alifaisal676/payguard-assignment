@@ -99,10 +99,106 @@ LightGBM scores one transaction in **0.6 ms (p50), 1.1 ms (p99)** on a laptop CP
 
 ## Part B: LLM complaint triage
 
-_Section completed after the evaluation run; see below._
+Full, regenerated report: **[part_b_triage/results/triage_eval.md](part_b_triage/results/triage_eval.md)**.
+
+### Data: and a change of plan
+
+The CFPB **stopped publishing complaint narratives on 14 Aug 2026**; its API now returns metadata only and rejects the narrative field. So `fetch_data.py` samples the narratives (published before that date) from the Hugging Face mirror [`Mouwiya/cfpb-consumer-complaints`](https://huggingface.co/datasets/Mouwiya/cfpb-consumer-complaints) (revision pinned in the output) through the row API, and **verifies a random sample of complaint IDs against the official CFPB API**: 39 of 39 matched on product, issue and date (one lookup failed on the network).
+
+- **Slice:** 500 complaints received 2024–2026, ≥100 characters, stratified by product. Seeds and quotas are in `fetch_data.py`.
+- **Committed:** `part_b_triage/data/complaints_raw.json` (~0.8 MB). Narratives can't be re-downloaded from CFPB any more, so committing them keeps the work reproducible.
+- **Templated complaints:** 83 of 500 belong to 24 groups of near-identical text. One Cash App template appears 25 times; several credit-repair templates appear 4 times. Real inflow looks like this too.
+
+### Design
+
+```
+complaint ─► mask PII ─► LLM (JSON mode, temperature 0, prompt v1) ─► Pydantic schema ─► deterministic guards ─► route + log
+                              ▲      invalid? send the error back, retry (max 3) │            keyword backstop can only ADD escalation
+                              └─────────────────────────────────────────────────┘            grounding check on summary numbers/dates
+                                                    still invalid? ─► safe fallback: "Other / unclear", requires_human = true
+```
+
+| Piece | File | Key choices |
+|---|---|---|
+| Taxonomy & policies | [`prompts.py`](part_b_triage/src/prompts.py), [`LABELING_GUIDE.md`](part_b_triage/labels/LABELING_GUIDE.md) | 7 routing categories with definitions and a tie-break order; urgency rubric; `requires_human` policy. The prompt and the labeling guide share one taxonomy. |
+| Schema | [`schema.py`](part_b_triage/src/schema.py) | `Literal` types reject hallucinated categories and urgencies; extra keys are forbidden; summary length is limited |
+| Client | [`llm_client.py`](part_b_triage/src/llm_client.py) | Groq / Gemini / Ollama via one OpenAI-compatible path (`LLM_PROVIDER`); tenacity backoff honouring `retry-after`; validation-error feedback; safe fallback; every call logged |
+| Prompt-injection defences | `prompts.py` + `guards.py` | Complaint in `<complaint>` delimiters that can't be closed from inside; "data, not instructions" rule; deterministic backstop |
+| Guards | [`guards.py`](part_b_triage/src/guards.py) | Regex rules (fraud, identity theft, legal, regulator/police, vulnerable, self-harm) force `requires_human`; summary grounding check; PII masking |
+| Pipeline | [`pipeline.py`](part_b_triage/src/pipeline.py) | Resumable (skips done IDs); paces itself under the free tier's tokens-per-minute limit; stops cleanly at the daily quota |
+| Evaluation | [`evaluate.py`](part_b_triage/src/evaluate.py), [`labeling.py`](part_b_triage/src/labeling.py) | See below |
+
+### Evaluation design
+
+Rigour matters more than the headline number, so each claim has its own test:
+
+1. **Hand labels (100 complaints, stratified):** category, urgency, requires_human, sensitive.
+   - Labeled **by me**, following a guide written first, in a terminal tool that hides the model's output and CFPB's product/issue fields. Model-made labels would make the evaluation circular.
+   - Reports accuracy, macro-F1 and the confusion matrix; **urgency under-triage**; **sensitive-case recall** (target 100%, every miss listed); and the **escalation rate**, because escalating everything would be useless.
+2. **Run-to-run stability:** 30 complaints triaged twice with identical input. This is the noise floor every other comparison needs.
+3. **Prompt injection:** 8 complaints with planted instructions (four attack styles, including a fake `</complaint>` + "SYSTEM:"), compared with both the clean run and the clean re-run.
+4. **Templated complaints:** identical text should get an identical route.
+5. **Weak labels:** CFPB's own product/issue fields mapped to our categories, on every processed complaint.
+6. **Robustness, latency and cost** from the call logs; **summary faithfulness** by human rating of 30 summaries, plus an automatic grounding check.
+7. **Two models:** `gpt-oss-120b` (main) vs. `gpt-oss-20b`.
+
+All proportions carry 95% Wilson intervals.
+
+### Results
+
+> **Hand-label metrics (accuracy, under-triage, sensitive recall) are filled in by `evaluate.py` once `labels/eval_labels.csv` exists.** Everything below doesn't depend on labels.
+
+| | gpt-oss-120b | gpt-oss-20b |
+|---|---|---|
+| Schema failures / retries / fallbacks (100 eval complaints) | 0 / 0 / 0 | 0 / 0 / 0 |
+| Summaries with a number/date not in the complaint | 0 | 0 |
+| Same category on an identical re-run | 27/30 (90%) | 29/30 (97%) |
+| Same **final** escalation on re-run (with guards) | **30/30** | **30/30** |
+| Identical template (7 copies) routed consistently | no (Customer ×4, Fraud ×3) | yes (Fraud ×7) |
+| Escalation rate, LLM alone → with guards | 30% → 51% | 49% → 63% |
+| Prompt injection moved the LLM | 1 clear + 1 within noise, of 8 | 1 of 8 |
+| **Prompt injection success after guards** | **0 of 8** | **0 of 8** |
+| Agreement with CFPB weak labels | 46% | 48% |
+| Tokens per complaint (in / out) | 992 / 129 | 989 / 110 |
+| Latency p50 / p95 | 0.9 s / 1.4 s | 0.8 s / 1.6 s |
+
+**What these say**
+- **The schema plus validation retries make output failures a non-issue.** The real risks are semantic: wrong route, under-triage, an inconsistent decision.
+- **The LLM alone isn't reliable enough for safety decisions.** It changes its escalation decision on 1 in 10 identical re-runs and can be pushed by a fake-delimiter attack. **The deterministic guards make the final escalation decision fully stable and resisted every injection.** That's the argument for keeping safety rules outside the model.
+- **The cost of that safety is escalation volume.** With guards, about half of complaints go to a human, mainly because "fraud" words are common, for example in credit-report disputes. The hand labels measure whether that is over-escalation. The likely next step is a cheaper "light review" queue for keyword-only escalations.
+- **The weak-label disagreement is mostly the weak labels' fault.** Complaints filed under CFPB's "debt collection" product are often credit-report disputes ("remove this collection from my report"), which the LLM routes correctly. Weak labels are good for spotting drift, not for measuring accuracy.
+- **The smaller model was more stable and more conservative.** Its accuracy is decided by the hand labels.
+
+### Cost (paid list prices, measured token counts)
+
+| Model | Per complaint | Per 50,000 complaints/month |
+|---|---|---|
+| gpt-oss-120b (Groq, $0.15/$0.60 per 1M) | $0.00023 | **≈ $11** |
+| gpt-oss-20b (Groq, $0.075/$0.30) | $0.00011 | ≈ $6 |
+| Gemini 2.5 Flash ($0.30/$2.50) | ≈ $0.0006 | ≈ $31 |
+| Claude Haiku 4.5 ($1/$5) | ≈ $0.0016 | ≈ $82 |
+
+The model is **not** the cost driver. A self-hosted open model on an in-country GPU is a fixed monthly cost, plausibly in the low thousands of dollars (my rough estimate; it depends on hardware and hosting, and needs a real quote). Human review of ~50% escalations dominates everything. The in-country hosting requirement (Part C) rules out these foreign APIs anyway. The free tier's limits (8k tokens/min, a daily quota) were the practical bottleneck of this prototype, which is why the pipeline paces itself and resumes.
+
+### Failure modes and mitigations
+
+| Failure | Seen here? | Mitigation |
+|---|---|---|
+| Invalid / hallucinated output format | No (0/100) | Pydantic `Literal` schema, error-feedback retry, safe fallback |
+| Inconsistent route for the same text | Yes (90% re-run agreement; template split 4/3) | Deterministic guards for safety; cluster templated complaints and route them once; v2 prompt with explicit "fraud > customer service" examples |
+| Prompt injection | Yes (fake delimiter worked once) | Delimiters + instruction; guards can only add escalation; log injection patterns |
+| Summary hallucination | Not found by the automatic check | Grounding check; human rating; show original next to summary in the agent UI |
+| Over-escalation | 51–63% escalated | Measure precision with hand labels; split keyword-only escalations into a lighter queue |
+| Provider silently changes the model | n/a | Pin versions; re-run this evaluation on every change (Part C) |
 
 ---
 
 ## What I cut and why
 
-_Completed at the end._
+- **Ollama / local model comparison.** It needs a local model download (several GB on a slow connection). The provider switch is built and is one line in `.env`. I compared two hosted model sizes instead.
+- **SMOTE.** It isn't installed and isn't needed: the class-weighting experiment showed reweighting hurts LightGBM here, so oversampling is unlikely to help, and imbalance is handled by the metric and threshold.
+- **Hyperparameter tuning, ensembles, deep learning (Part A).** ~340 training frauds can't support them without overfitting the validation set.
+- **Hour-of-day features (Part A).** Validation and test contain no night hours, so they couldn't be validated.
+- **Full 500-complaint batch on both models.** Free-tier daily token quotas allow roughly 150–200 triages per model per day. The pipeline resumes, so the remainder is a re-run of the same command.
+- **Prompt v2.** The template inconsistency points to a fix, but re-running the whole evaluation within the quota would have taken another day. It's listed as the first next step.
+- **LLM-as-judge for summaries.** Without human ratings to calibrate it, it would just be another unvalidated model. Human ratings come first.

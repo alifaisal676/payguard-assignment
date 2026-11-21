@@ -27,7 +27,7 @@ How I used AI tools on this assignment, kept as I go rather than written from me
 
 - **Hand labels for the Part B evaluation set.** Labeled by me in the terminal tool (`labeling.py`), following the labeling guide written beforehand, without seeing the model's output or CFPB's product/issue fields, so the evaluation isn't an AI grading an AI. **My decision:** rather than label all 100, label every case where the two models disagree plus a random sample of agreement cases (stratified sampling). The AI implemented the sampling and the re-weighted estimate.
 - **Label adjudication: done by AI at my request, and disclosed.** 43 of my 57 labels broke an explicit rule of the written guide. I asked Claude to re-check them against the guide (complaint text and guide only, no model output shown; it had seen some model predictions earlier in the session). It changed 38 and kept 5, with a reason for each in `labels/eval_labels.csv`. My untouched labels are in `labels/eval_labels_original.csv`, and both results are reported. The adjudicated labels are an AI's reading of the guide, so the adjudicated accuracy is an optimistic bound, not an independent human measurement.
-- **Summary faithfulness ratings** (30 summaries), also mine.
+- **Summary faithfulness ratings** (30 summaries): planned to be done by me, not yet done at submission (see README, "What I cut"). Only the automatic grounding check was run.
 - The LLM that does the triage (Groq gpt-oss) is a *component under test*, not a coding aid; its outputs are evaluated, never used as labels.
 
 ## Where AI output was wrong or needed changes
